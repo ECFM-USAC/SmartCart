@@ -10,21 +10,21 @@ import statistics as stats
 import numpy as np
 plt.style.use('seaborn')
 
+########################################   CANVAS  #########################################################
+#Objeto en el que se graficará
 class Canvas(FigureCanvas):
     def __init__(self, parent=None, width=6, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
-        self.compute_initial_figure()
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def compute_initial_figure(self):
-        #self.axes.plot([0, 1, 2, 3], [1, 2, 0, 4], 'r')
-        pass
-
+#######################################   DATAPLOT  ########################################################
+#Contiene todos los datos que se manipulan en nuestro programa.
 class DataPlot:
+    #Metodo inicial para definir las listas
     def __init__(self, max_entries=50):
         self.axis_t = deque(maxlen=max_entries)
         self.axis_x = deque(maxlen=max_entries)
@@ -46,6 +46,7 @@ class DataPlot:
         self.Vmax = [0,0,0,0,0,0,0,0,0,0,0,0]
         self.Vmin = [0,0,0,0,0,0,0,0,0,0,0,0]
 
+    #Método para actualzar datos.
     def act(self, max_entries):
         self.axis_t = deque(maxlen=max_entries)
         self.axis_x = deque(maxlen=max_entries)
@@ -65,6 +66,7 @@ class DataPlot:
         self.buf = deque(maxlen=25)
         print("Data actualizada")
 
+    #Método para agregar datos.
     def add(self, x, y):
         self.axis_x.append(x)
         self.axis_y = y
@@ -118,10 +120,15 @@ class DataPlot:
         self.Vmin[10] = min(self.axis_y11)
         self.Vmin[11] = min(self.axis_y12)
 
+####################################   REALTIME PLOT  ######################################################
+#Clase que nos permite graficar en tiempo real en nuestro objeto Canvas
 class RealTimePlot(Canvas):
+
+    #Inherit
     def __init__(self, *args, **kwargs):
         Canvas.__init__(self, *args, **kwargs)
 
+    #Método para actualizar figura cada vez que se tienen nuevos datos.
     def update_figure(self, data, state, stateN, graph):
         self.axes.clear()
         if state[0] == 1:

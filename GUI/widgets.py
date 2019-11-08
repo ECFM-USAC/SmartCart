@@ -439,6 +439,8 @@ class MainWidget(QtWidgets.QMainWindow):
 
 
     #######################################   ACCIONES  #########################################################
+
+    ###################################   Checkbox handler  #####################################################
     def on_chx1(self, state):
         if (QtCore.Qt.Checked == state):
             self.state[0] = 1
@@ -511,6 +513,8 @@ class MainWidget(QtWidgets.QMainWindow):
         else:
             self.state[11] = 0
     
+    #####################################   MQTT  ##############################################################
+    #Cambio en el estado (activo/inactivo)
     @QtCore.pyqtSlot(int)
     def on_stateChanged(self, state):
         if state == MqttClient.Connected:
@@ -519,7 +523,8 @@ class MainWidget(QtWidgets.QMainWindow):
             self.labelS1.setText(self.client.hostname)
             self.labelE1.setText("Conectado")
             print(u"Se ha efectuado la conexión")
-        
+
+    #Mensajes a los topics subscritos
     @QtCore.pyqtSlot(list)
     def on_messageSignal(self, msg):
         val1 = float(msg[0])
@@ -530,6 +535,8 @@ class MainWidget(QtWidgets.QMainWindow):
         self.Plot.update_figure(self.Data, self.state, self.stateN, self.graph)
         self.actualizarV(self.Data.axis_y, self.Data.Vmed, self.Data.Vmax, self.Data.Vmin)
 
+    ###################################   Menu Bar  ############################################################
+    #Menu "Server"
     def process_server(self, q):
         print(q.text())
         if(q.text()=="Conectar"):
@@ -576,16 +583,19 @@ class MainWidget(QtWidgets.QMainWindow):
             self.labelE1.setText("Desconectado")
             self.server = False
             
+    #Menu "Gráfica"
     def process_graph(self, q):
-        print(q.text())
+        #print(q.text())
+        #Action "Impacto"
         if (q.text()=="Impacto"):
-            print("Cambio")
+            #Se agrega el icono de seleccion a la action en el MenuBar
             self.selectImp.setIcon(QIcon("check.png"))
             self.selectAce.setIcon(QIcon(""))
             self.selectAng.setIcon(QIcon(""))
             self.selectGir.setIcon(QIcon(""))
             self.selectAll.setIcon(QIcon(""))
 
+            #Se borran los widgets contenidos en el GroupBox de seleccion de datos
             while self.vbox.count() > 0:
                 print(self.vbox.count())
                 item = self.vbox.takeAt(0).widget()
@@ -595,19 +605,21 @@ class MainWidget(QtWidgets.QMainWindow):
                 item.setParent(None)
 
 
+            #Se borran los widgets contenidos en el GroupBox que muestra datos
             while self.vbox4.count() > 0:
                 item = self.vbox4.takeAt(0).widget()
                 self.vbox4.removeWidget(item)
                 item.setParent(None)
             
         if (q.text()==u"Acelerómetro"):
-            print("Cambio")
+            #Se agrega el icono de seleccion a la action en el MenuBar
             self.selectImp.setIcon(QIcon(""))
             self.selectAce.setIcon(QIcon("check.png"))
             self.selectAng.setIcon(QIcon(""))
             self.selectGir.setIcon(QIcon(""))
             self.selectAll.setIcon(QIcon(""))
 
+            #Se borran los widgets contenidos en el GroupBox de seleccion de datos
             while self.vbox.count() > 0:
                 print(self.vbox.count())
                 item = self.vbox.takeAt(0).widget()
@@ -616,12 +628,14 @@ class MainWidget(QtWidgets.QMainWindow):
                 self.vbox.removeWidget(item)
                 item.setParent(None)
 
+            #Se borran los widgets contenidos en el GroupBox que muestra datos
             while self.vbox4.count() > 0:
                 item = self.vbox4.takeAt(0).widget()
                 self.vbox4.removeWidget(item)
                 item.setParent(None)
                 
-            print("Borrado")
+
+            #Se agregan items de seleccion de datos
             i = 0
             self.vbox.addWidget(self.labelX,i,0)
             i+=1
@@ -645,6 +659,7 @@ class MainWidget(QtWidgets.QMainWindow):
             
             self.rbM.setChecked(True)
 
+            #Se agregan items de muestra de datos
             self.vbox4.addWidget(self.labelE, 0, 0)
             self.vbox4.addWidget(self.labelV, 1, 0)
             self.vbox4.addWidget(self.labelVmed, 2, 0)
@@ -667,18 +682,20 @@ class MainWidget(QtWidgets.QMainWindow):
             self.vbox4.addWidget(self.minAcx, 4, 1)
             self.vbox4.addWidget(self.minAcy, 4, 2)
             self.vbox4.addWidget(self.minAcz, 4, 3)
-            
+
+            #Se colocan layouts en los GroupBox correspondientes
             self.Box.setLayout(self.vbox)
             self.Box4.setLayout(self.vbox4)
             
         if (q.text()=="Giroscopio"):
-            print("Cambio")
+            #Se agrega el icono de seleccion a la action en el MenuBar
             self.selectImp.setIcon(QIcon(""))
             self.selectAce.setIcon(QIcon(""))
             self.selectAng.setIcon(QIcon(""))
             self.selectGir.setIcon(QIcon("check.png"))
             self.selectAll.setIcon(QIcon(""))
-               
+
+            #Se borran los widgets contenidos en el GroupBox de seleccion de datos
             while self.vbox.count() > 0:
                 print(self.vbox.count())
                 item = self.vbox.takeAt(0).widget()
@@ -687,12 +704,13 @@ class MainWidget(QtWidgets.QMainWindow):
                 self.vbox.removeWidget(item)
                 item.setParent(None)
 
+            #Se borran los widgets contenidos en el GroupBox que muestra los datos
             while self.vbox4.count() > 0:
                 item = self.vbox4.takeAt(0).widget()
                 self.vbox4.removeWidget(item)
                 item.setParent(None)
 
-            print("Borrado")
+            #Se agregan los widgets de seleccion de datos
             i = 0
             self.vbox.addWidget(self.labelX,i,0)
             i+=1
@@ -716,6 +734,7 @@ class MainWidget(QtWidgets.QMainWindow):
             
             self.rbM.setChecked(True)
 
+            #Se agregan los widgets de muestra de datos
             self.vbox4.addWidget(self.labelE, 0, 0)
             self.vbox4.addWidget(self.labelV, 1, 0)
             self.vbox4.addWidget(self.labelVmed, 2, 0)
@@ -738,18 +757,20 @@ class MainWidget(QtWidgets.QMainWindow):
             self.vbox4.addWidget(self.minGx, 4, 1)
             self.vbox4.addWidget(self.minGy, 4, 2)
             self.vbox4.addWidget(self.minGz, 4, 3)
-            
+
+            #Se colocan layouts en los GroupBox correspondientes
             self.Box.setLayout(self.vbox)
             self.Box4.setLayout(self.vbox4)
             
         if (q.text()==u"Ángulos"):
-            print("Cambio")
+            #Se agrega el icono de seleccion a la action en el MenuBar
             self.selectImp.setIcon(QIcon(""))
             self.selectAce.setIcon(QIcon(""))
             self.selectAng.setIcon(QIcon("check.png"))
             self.selectGir.setIcon(QIcon(""))
             self.selectAll.setIcon(QIcon(""))
 
+            #Se borran los widgets contenidos en el GroupBox de seleccion de datos
             while self.vbox.count() > 0:
                 print(self.vbox.count())
                 item = self.vbox.takeAt(0).widget()
@@ -758,12 +779,13 @@ class MainWidget(QtWidgets.QMainWindow):
                 self.vbox.removeWidget(item)
                 item.setParent(None)
 
+            #Se borran los widgets contenidos en el GroupBox que muestra los datos
             while self.vbox4.count() > 0:
                 item = self.vbox4.takeAt(0).widget()
                 self.vbox4.removeWidget(item)
                 item.setParent(None)
 
-            print("Borrado")
+            #Se agregan widgets de selección de datos
             i = 0
             self.vbox.addWidget(self.labelX,i,0)
             i+=1
@@ -787,6 +809,7 @@ class MainWidget(QtWidgets.QMainWindow):
             
             self.rbM.setChecked(True)
 
+            #Se agregan widgets de meustra de datos
             self.vbox4.addWidget(self.labelE, 0, 0)
             self.vbox4.addWidget(self.labelV, 1, 0)
             self.vbox4.addWidget(self.labelVmed, 2, 0)
@@ -810,17 +833,19 @@ class MainWidget(QtWidgets.QMainWindow):
             self.vbox4.addWidget(self.minAy, 4, 2)
             self.vbox4.addWidget(self.minAz, 4, 3)
             
+            #Se agregan layouts a GroupBox
             self.Box.setLayout(self.vbox)
             self.Box4.setLayout(self.vbox4)
             
         if (q.text()=="Todos"):
-            print("Cambio")
+            #Se agrega el icono de seleccion a la action en el MenuBar
             self.selectImp.setIcon(QIcon(""))
             self.selectAce.setIcon(QIcon(""))
             self.selectAng.setIcon(QIcon(""))
             self.selectGir.setIcon(QIcon(""))
             self.selectAll.setIcon(QIcon("check.png"))
 
+            #Se borran los widgets contenidos en el GroupBox de seleccion de datos
             while self.vbox.count() > 0:
                 print(self.vbox.count())
                 item = self.vbox.takeAt(0).widget()
@@ -829,11 +854,13 @@ class MainWidget(QtWidgets.QMainWindow):
                 self.vbox.removeWidget(item)
                 item.setParent(None)
 
+            #Se borran los widgets contenidos en el GroupBox que muestra datos
             while self.vbox4.count() > 0:
                 item = self.vbox4.takeAt(0).widget()
                 self.vbox4.removeWidget(item)
                 item.setParent(None)
 
+            #Se agregan widgets de selección de datos
             i=0
             self.vbox.addWidget(self.labelX,i,0)
             i+=1
@@ -864,55 +891,12 @@ class MainWidget(QtWidgets.QMainWindow):
             self.vbox.addWidget(self.chxI,i,0)
             
             self.rbM.setChecked(True)
-            
+
+            #Se agrega layout a GroupBox
             self.Box.setLayout(self.vbox)
 
-
-    @QtCore.pyqtSlot()
-    def on_Aplicar(self):
-        self.graph[0] = 1
-        try:
-            if (str(self.textZmin.text())=="AUTO" and str(self.textZmax.text())=="AUTO"):
-                self.graph[0] = 0
-                print(u"Valores automáticos eje vertical")
-            else:
-                self.graph[1] = int(str(self.textZmin.text()))
-                self.graph[2] = int(str(self.textZmax.text()))
-                print(int(self.textZmin.text()))
-                print(int(self.textZmax.text()))
-        except:
-            self.graph[0] = 0
-            print(u"Valores no válidos eje vertical")
-            self.textZmin.setText("AUTO")
-            self.textZmax.setText("AUTO")
-        print("CAMBIO EJE VERTICAL")
-
-    @QtCore.pyqtSlot()
-    def on_Auto(self):
-        self.graph[0] = 0
-        self.graph[1] = 0
-        self.graph[2] = 0
-        self.textZmin.setText("AUTO")
-        self.textZmax.setText("AUTO")
-        print("auto")
-
-    @QtCore.pyqtSlot()
-    def on_AplicarT(self):
-        try:
-            print(str(self.textCuadros.text()))
-            self.Data.act(int(str(self.textCuadros.text())))
-            self.count = 0
-        except:
-            self.textCuadros.setText("50")
-            self.Data.act(50)
-            print(u"Valores no válidos eje horizontal")
-        
-    @QtCore.pyqtSlot()
-    def on_Reiniciar(self):
-        self.textCuadros.setText("50")
-        self.Data.act(50)
-        self.count = 0
-
+    ###################################   Datos mostrados  #####################################################
+            
     def actualizarV(self, ValAct, ValMed, ValMax, ValMin):
         self.vAx.setText(str(ValAct[0]))
         self.vAy.setText(str(ValAct[1]))
@@ -951,13 +935,17 @@ class MainWidget(QtWidgets.QMainWindow):
         self.minAcy.setText(str(ValMin[7]))
         self.minAcz.setText(str(ValMin[8]))
 
+
+    ###########################   WIDGETS SELECCIÓN DE DATOS  ############################################
+    #Radio Button datos de tiempo (eje horizontal)
     @QtCore.pyqtSlot()
     def on_rbT(self):
         if self.rbT.isChecked():
             print("Tiempo seleccionado", self.stateN)
             self.stateN = 4
             self.graph[0] = 0
-        
+
+    #Radio Button muestras (eje horizontal)    
     @QtCore.pyqtSlot()
     def on_rbM(self):
         if self.rbM.isChecked():
@@ -965,6 +953,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 0
             self.graph[0] = 0
 
+    #Radio Button Ángulo x (eje horizontal)    
     @QtCore.pyqtSlot()
     def on_rbAx(self):
         if self.rbAx.isChecked():
@@ -972,6 +961,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 1
             self.graph[0] = 1
 
+    #Radio Button Ángulo y (eje horizontal)    
     @QtCore.pyqtSlot()    
     def on_rbAy(self):
         if self.rbAy.isChecked():
@@ -979,6 +969,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 2
             self.graph[0] = 1
 
+    #Radio Button Ángulo z (eje horizontal)    
     @QtCore.pyqtSlot()
     def on_rbAz(self):
         if self.rbAz.isChecked():
@@ -986,6 +977,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 3
             self.graph[0] = 1
 
+    #Radio Button Aceleración x (eje horizontal)    
     @QtCore.pyqtSlot()    
     def on_rbAcx(self):
         if self.rbAcx.isChecked():
@@ -993,6 +985,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 1
             self.graph[0] = 1
 
+    #Radio Button Aceleración y (eje horizontal)    
     @QtCore.pyqtSlot()
     def on_rbAcy(self):
         if self.rbAcy.isChecked():
@@ -1000,6 +993,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 2
             self.graph[0] = 1
 
+    #Radio Button Aceleración z (eje horizontal)    
     @QtCore.pyqtSlot()    
     def on_rbAcz(self):
         if self.rbAcz.isChecked():
@@ -1007,6 +1001,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 3
             self.graph[0] = 1
 
+    #Radio Button Grisocopio x (eje horizontal)    
     @QtCore.pyqtSlot()
     def on_rbGx(self):
         if self.rbGx.isChecked():
@@ -1014,6 +1009,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 1
             self.graph[0] = 1
 
+    #Radio Button Giroscopio y (eje horizontal)    
     @QtCore.pyqtSlot()    
     def on_rbGy(self):
         if self.rbGy.isChecked():
@@ -1021,6 +1017,7 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 2
             self.graph[0] = 1
 
+    #Radio Button Giroscopio z (eje horizontal)    
     @QtCore.pyqtSlot()    
     def on_rbGz(self):
         if self.rbGz.isChecked():
@@ -1028,6 +1025,8 @@ class MainWidget(QtWidgets.QMainWindow):
             self.stateN = 3
             self.graph[0] = 1
 
+    ##########################   WIDGETS MANIPULACIÓN GRÁFICA  ###########################################
+    #Zoom para el eje vertical
     @QtCore.pyqtSlot()    
     def on_valueChangedy(self):
         value = 300-int(self.zoomySlider.value())+0.1
@@ -1037,7 +1036,7 @@ class MainWidget(QtWidgets.QMainWindow):
         self.graph[1] = value
         self.graph[2] = center
         
-
+    #Valor de centrado eje vertical
     @QtCore.pyqtSlot()    
     def on_valueChangedcy(self):
         value = 300-int(self.zoomySlider.value())+0.1
@@ -1046,7 +1045,8 @@ class MainWidget(QtWidgets.QMainWindow):
         print("centrado y ",center)
         self.graph[1] = value
         self.graph[2] = center
-        
+
+    #Zoom para el eje horizontal        
     @QtCore.pyqtSlot()    
     def on_valueChangedx(self):
         print(self.zoomxSlider.value())
@@ -1056,6 +1056,7 @@ class MainWidget(QtWidgets.QMainWindow):
         self.graph[3] = value
         self.graph[4] = center
 
+    #Valor de centrado eje horizontal
     @QtCore.pyqtSlot()    
     def on_valueChangedcx(self):
         value = 300-int(self.zoomxSlider.value())+0.1
@@ -1065,19 +1066,7 @@ class MainWidget(QtWidgets.QMainWindow):
         self.graph[3] = value
         self.graph[4] = center
 
-class LogWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(LogWidget, self).__init__(parent)
-        self.button   = QtWidgets.QPushButton('Select file')
-        self.label    = QtWidgets.QLabel('Selection will go here')
-        self.lineedit = QtWidgets.QLineEdit()
-        self.lineedit.setPlaceholderText("Rename (optional)...")
-
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.addWidget(self.button)
-        layout.addWidget(self.label)
-        layout.addWidget(self.lineedit)
-
+################################   WIDGET INICIAL (SERVER)  ##################################################
 class Dialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
@@ -1097,6 +1086,7 @@ class Dialog(QtWidgets.QDialog):
         layout.addWidget(self.buttonOk, 2, 0)
         layout.addWidget(self.buttonCancel, 2, 1)
 
+################################   WIDGET ANUNCIO (SERVER)  ##################################################
 class DialogAnuncio(QtWidgets.QDialog):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
