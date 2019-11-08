@@ -181,15 +181,15 @@ class RealTimePlot(Canvas):
                 self.axes.set_xlabel("Muestras")
                 self.axes.legend(loc = 'upper right')
             if stateN == 1:
-                self.axes.scatter(round(data.Vmed[3],0), data.Vmed[3], color = 'c', label = u"Aceleración x")
+                self.axes.scatter(data.axis_y4, data.axis_y4, color = 'c', label = u"Aceleración x")
                 self.axes.set_xlabel(u"Aceleración x")
                 self.axes.legend(loc = 'upper right')
             if stateN == 2:
-                self.axes.scatter(round(data.Vmed[4],0), data.Vmed[3], color = 'b', label = u"Aceleración x")
+                self.axes.scatter(data.axis_y5, data.axis_y4, color = 'b', label = u"Aceleración x")
                 self.axes.set_xlabel(u"Aceleración y")
                 self.axes.legend(loc = 'upper right')
             if stateN == 3:
-                self.axes.scatter(round(data.Vmed[5],0), data.Vmed[3], color ='r', label = u"Aceleración x")
+                self.axes.scatter(data.axis_y6, data.axis_y4, color ='r', label = u"Aceleración x")
                 self.axes.set_xlabel(u"Aceleración z")
                 self.axes.legend(loc = 'upper right')
         if state[4] == 1:                            
@@ -198,15 +198,15 @@ class RealTimePlot(Canvas):
                 self.axes.set_xlabel("Muestras")
                 self.axes.legend(loc = 'upper right')
             if stateN == 1:
-                self.axes.scatter(round(data.Vmed[3],0), data.Vmed[4], color = 'k', label = u"Aceleración y")
+                self.axes.scatter(data.axis_y4,data.axis_y5, color = 'k', label = u"Aceleración y")
                 self.axes.set_xlabel(u"Aceleración x")
                 self.axes.legend(loc = 'upper right')
             if stateN == 2:
-                self.axes.scatter(round(data.Vmed[4],0), data.Vmed[4], color = 'g', label = u"Aceleración y")
+                self.axes.scatter(data.axis_y5, data.axis_y5, color = 'g', label = u"Aceleración y")
                 self.axes.set_xlabel(u"Aceleración y")
                 self.axes.legend(loc = 'upper right')
             if stateN == 3:
-                self.axes.scatter(round(data.Vmed[5],0), data.Vmed[4], color ='y', label = u"Aceleración y")
+                self.axes.scatter(data.axis_y6, data.axis_y5, color ='y', label = u"Aceleración y")
                 self.axes.set_xlabel(u"Aceleración z")
                 self.axes.legend(loc = 'upper right')
         if state[5] == 1:
@@ -215,15 +215,15 @@ class RealTimePlot(Canvas):
                 self.axes.set_xlabel("Muestras")
                 self.axes.legend(loc = 'upper right')
             if stateN == 1:
-                self.axes.scatter(round(data.Vmed[3],0), data.Vmed[5], color = 'm', label = u"Aceleración z")
+                self.axes.scatter(data.axis_y4, data.axis_y6, color = 'm', label = u"Aceleración z")
                 self.axes.set_xlabel(u"Aceleración x")
                 self.axes.legend(loc = 'upper right')
             if stateN == 2:
-                self.axes.scatter(round(data.Vmed[4],0), data.Vmed[5], color = 'g', label = u"Aceleración z")
+                self.axes.scatter(data.axis_y5, data.axis_y6, color = 'g', label = u"Aceleración z")
                 self.axes.set_xlabel(u"Aceleración y")
                 self.axes.legend(loc = 'upper right')
             if stateN == 3:
-                self.axes.scatter(round(data.Vmed[5],0), data.Vmed[5], color ='b', label = u"Aceleración z")
+                self.axes.scatter(data.axis_y6, data.axis_y6, color ='b', label = u"Aceleración z")
                 self.axes.set_xlabel(u"Aceleración z")
                 self.axes.legend(loc = 'upper right')
         if state[6] == 1:

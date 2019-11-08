@@ -1,7 +1,6 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton, QGroupBox, QAction, qApp
 from PyQt5.QtGui import QIcon
-import pyqtgraph as pg
 import numpy as np
 import sys
 import time
@@ -14,30 +13,31 @@ class MainWidget(QtWidgets.QMainWindow):
     count = 0
     ptr = 0
 
+    ########################################   MAINWIDGET  #########################################################
     def __init__(self, parent=None):
-        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.stateN = 0
-        self.graph = [0, 0, 0, 0, 0]
-        self.server = False
+        ######################################   Variables  ########################################################
+        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #Indica que se debe graficar en el eje vertical
+        self.stateN = 0                                   #Indica los datos del eje horizontal
+        self.graph = [0, 0, 0, 0, 0]                      #Contiene los parametros de los ejes de nuestra grafica
+        self.server = False                               #Nos indica si hay conexion con el servidor
 
-        self.graph[1] = 200
-        self.graph[2] = 0
+        self.graph[1] = 200                               #Zoom eje vertical
+        self.graph[2] = 0                                 #Centro eje vertical
 
-        self.graph[1] = 200
-        self.graph[2] = 0
+        self.graph[1] = 200                               #Zoom eje horizontal
+        self.graph[2] = 0                                 #Centro eje horizontal
                  
-        super(MainWidget, self).__init__(parent)
-        self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle("Interfaz")
-        self.setStyleSheet("background-color:white;")
+        ############################   Configuracion ventana principal  ############################################
+        super(MainWidget, self).__init__(parent)          #Inheritance
+        self.setGeometry(100, 100, 800, 600)              #Tamaño ventana principal
+        self.setWindowTitle("Interfaz")                   #Titulo
+        self.setStyleSheet("background-color:white;")     #Color de fondo
 
-        ##################################################################
+        #################################   Creacion Layout  #######################################################
 
-        self.label1 = QtWidgets.QLabel("Grafica")
-        self.label1.setFont(QtGui.QFont("Times", 12, QtGui.QFont.Bold))
         self.main_widget = QtWidgets.QWidget()
         lay = QtWidgets.QGridLayout(self.main_widget)
-
+        
         lay.setRowStretch(1, 1)
         lay.setRowStretch(2, 5)
         lay.setRowStretch(3, 2)
@@ -45,81 +45,89 @@ class MainWidget(QtWidgets.QMainWindow):
         lay.setColumnStretch(0, 1)
         lay.setColumnStretch(1, 5)
 
+        ##############################   Creacion Widget Grafica  ##################################################
+
+        self.label1 = QtWidgets.QLabel("Grafica")                           #Etiqueta:"Grafica"
+        self.label1.setFont(QtGui.QFont("Times", 12, QtGui.QFont.Bold))     #Fuente de la etiqueta
         lay.addWidget(self.label1, 0, 1, QtCore.Qt.AlignCenter)
 
-        ##################################################################
+        self.Plot = pgraph.RealTimePlot(self, width=5, height=4, dpi=100)   #Objeto grafica, derivado de la clase "RealTimePlot" en nuestro archivo "plot.py"
+        lay.addWidget(self.Plot, 1, 1, 3, 1)                                #Se agrega el objeto a nuestra layout
 
-        self.lcd_number = QtWidgets.QLCDNumber()
         
-        ##################################################################
 
-        self.Plot = pgraph.RealTimePlot(self, width=5, height=4, dpi=100)
-        lay.addWidget(self.Plot, 1, 1, 3, 1)
+        ##################################   Creacion ToolBar  #####################################################
 
-        ##################################################################
+        self.tb = QtWidgets.QToolBar()                                     #Objeto ToolBar
+        self.myQMenuBar = QtWidgets.QMenuBar()                             #Objeto QMenuBar
         
-        self.tb = QtWidgets.QToolBar()
-        
-        self.myQMenuBar = QtWidgets.QMenuBar()
-        
-        self.fileMenu = self.myQMenuBar.addMenu("Servidor")
+        #Se agrega menu "Servidor" a QMenuBar
+        self.fileMenu = self.myQMenuBar.addMenu("Servidor")               
 
-        copyAction = QAction("Desconectar", self)
-        copyAction.setShortcut("Ctrl+d")
-        self.fileMenu.addAction(copyAction)
-        pasteAction = QAction("Conectar", self)
-        pasteAction.setShortcut("Ctrl+o")
-        self.fileMenu.addAction(pasteAction)
+        ##Se crea accion (submenu) "Desconectar" en menu "Servidor"
+        desconectarAction = QAction("Desconectar", self)                   
+        desconectarAction.setShortcut("Ctrl+d")
+        self.fileMenu.addAction(desconectarAction)
+
+        ##Se crea accion (submenu) "Conectar" en menu "Servidor"
+        conectarAction = QAction("Conectar", self)                         
+        conectarAction.setShortcut("Ctrl+o")
+        self.fileMenu.addAction(conectarAction)
         self.fileMenu.triggered[QAction].connect(self.process_server)
 
-        self.fileMenu1 = self.myQMenuBar.addMenu(u"Gráfica")
-        #grabarAction = QAction("Grabar", self)
-        #grabarAction.setShortcut("Ctrl+G")
-        #self.fileMenu1.addAction(grabarAction)
-        #detenerAction = QAction("Detener", self)
-        #detenerAction.setShortcut("Ctrl+D")
-        #self.fileMenu1.addAction(detenerAction)
+        #Se agrega menu "Grafica" a QMenuBar
+        self.fileMenu1 = self.myQMenuBar.addMenu(u"Gráfica")                
         self.fileMenu1.triggered[QAction].connect(self.process_graph)       
 
+        ##Se crea accion (submenu) "Datos" en menu "Grafica"
         self.subMenu = QtWidgets.QMenu("Datos")
-        #self.subMenu.icon = QIcon("icono.png")
+        ###Se crea sub-accion "Acelerometro" en accion (submenu) "Datos"
         self.selectAce = QAction("Acelerómetro", self)
         self.selectAce.setShortcut("Ctrl+c")
         self.subMenu.addAction(self.selectAce)
+        ###Se crea sub-accion "Giroscopio" en accion (submenu) "Datos"
         self.selectGir = QAction("Giroscopio", self)
         self.selectGir.setShortcut("Ctrl+g")
         self.subMenu.addAction(self.selectGir)
+        ###Se crea sub-accion "Angulos" en accion (submenu) "Datos"
         self.selectAng = QAction(u"Ángulos", self)
         self.selectAng.setShortcut("Ctrl+a")
         self.subMenu.addAction(self.selectAng)
+        ###Se crea sub-accion "Velocidad" en accion (submenu) "Datos"
         self.selectVel = QAction("Velocidad", self)
         self.selectAng.setShortcut("Ctrl+v")
         self.subMenu.addAction(self.selectAng)
+        ###Se crea sub-accion "Impacto" en accion (submenu) "Datos"
         self.selectImp = QAction("Impacto", self)
         self.selectImp.setShortcut("Ctrl+i")
         self.subMenu.addAction(self.selectImp)
+        ###Se crea sub-accion "Todos" en accion (submenu) "Datos"
         self.selectAll = QAction(QIcon("check.png"),"Todos", self)
         self.selectAll.setShortcut("Ctrl+t")
         self.subMenu.addAction(self.selectAll)
 
-        self.fileMenu1.addMenu(self.subMenu)
+        self.fileMenu1.addMenu(self.subMenu)                               #Se agrega submenu "Datos" a menu "Grafica"
 
-        self.tb.addWidget(self.myQMenuBar)
-        self.tb.setFloatable(False)
+        self.tb.addWidget(self.myQMenuBar)                                 #Se agrega QMenuBar a objeto ToolBar
+        self.tb.setFloatable(False)                                        
         self.tb.setMovable(False)
-        self.addToolBar(self.tb)
+        self.addToolBar(self.tb)                                           #Se agrega ToolBar a nuestro MainWidget
 
-        ##################################################################
+        #########################   Creacion GroupBox para seleccion de datos  #####################################
 
+        #Objeto GroupBox y caracteristicas
         self.Box = QtWidgets.QGroupBox()
         self.Box.setMinimumHeight(400)
         self.Box.setMinimumWidth(300)
 
+        #Etiquetas para datos eje horizontal y eje vertical
         self.labelX = QtWidgets.QLabel("Eje horizontal")
         self.labelX.setFont(QtGui.QFont("Times", 9, QtGui.QFont.Bold))
         self.labelY = QtWidgets.QLabel("Eje vertical")
         self.labelY.setFont(QtGui.QFont("Times", 9, QtGui.QFont.Bold))
 
+        #Seleccion de datos del eje horizontal (Se usa RadioButton pues solo se puede seleccionar uno a la vez)
+        ##Creacion RadioButtons
         self.rbT = QtWidgets.QRadioButton("Tiempo")
         self.rbM = QtWidgets.QRadioButton("Muestras")
         self.rbAx = QtWidgets.QRadioButton(u"Ángulo-x")
@@ -132,6 +140,7 @@ class MainWidget(QtWidgets.QMainWindow):
         self.rbGy = QtWidgets.QRadioButton("Giroscopio-y")
         self.rbGz = QtWidgets.QRadioButton("Giroscopio-z")
         self.rbM.setChecked(True)
+        ##Conexion con proceso para handler RadioButton
         self.rbT.toggled.connect(self.on_rbT)
         self.rbM.toggled.connect(self.on_rbM)
         self.rbAx.toggled.connect(self.on_rbAx)
@@ -144,8 +153,8 @@ class MainWidget(QtWidgets.QMainWindow):
         self.rbGy.toggled.connect(self.on_rbGy)
         self.rbGz.toggled.connect(self.on_rbGz)
 
-        self.rbM.setChecked(True)
-        
+        #Seleccion de datos del eje vertical (Se usa CheckBox pues se pueden seleccionar varios)
+        ##Creacion CheckBox
         self.chxAx = QtWidgets.QCheckBox(u"Ángulo-x")
         self.chxAy = QtWidgets.QCheckBox(u"Ángulo-y")
         self.chxAz = QtWidgets.QCheckBox(u"Ángulo-z")
@@ -158,7 +167,21 @@ class MainWidget(QtWidgets.QMainWindow):
         self.chxVs = QtWidgets.QCheckBox("vueltas")
         self.chxPs = QtWidgets.QCheckBox("pulsos")
         self.chxI = QtWidgets.QCheckBox("peso")
+        ##Conexion con proceso handler CheckBox
+        self.chxAx.stateChanged.connect(self.on_chx1)
+        self.chxAy.stateChanged.connect(self.on_chx2)
+        self.chxAz.stateChanged.connect(self.on_chx3)
+        self.chxAcx.stateChanged.connect(self.on_chx4)
+        self.chxAcy.stateChanged.connect(self.on_chx5)
+        self.chxAcz.stateChanged.connect(self.on_chx6)
+        self.chxGx.stateChanged.connect(self.on_chx7)
+        self.chxGy.stateChanged.connect(self.on_chx8)
+        self.chxGz.stateChanged.connect(self.on_chx9)
+        self.chxVs.stateChanged.connect(self.on_chx10)
+        self.chxPs.stateChanged.connect(self.on_chx11)
+        self.chxI.stateChanged.connect(self.on_chx12)  
 
+        #Se agregan objetos a layout de nuestra GroupBox
         self.vbox = QtWidgets.QGridLayout(self.Box)
         self.vbox.setAlignment(QtCore.Qt.AlignTop)
         self.vbox.addWidget(self.labelX,0,0)
@@ -177,12 +200,15 @@ class MainWidget(QtWidgets.QMainWindow):
         self.vbox.addWidget(self.chxI,15,0)
         self.Box.setLayout(self.vbox)
 
+        #Se agrega GroupBox a layout de MainWidget
         lay.addWidget(self.Box, 2, 0)
        
-        ##################################################################
-        
+        ######################   Creacion GroupBox para estado del servidor  ##############################
+        #Creacion GroupBox
         self.Box1 = QtWidgets.QGroupBox()
-        self.Box1.setMinimumWidth(300)
+        self.Box1.setMinimumWidth(350)
+
+        #Creacion Etiquetas
         self.labelS = QtWidgets.QLabel("Server:")
         self.labelS.setFont(QtGui.QFont("Times", 14))
         self.labelS1 = QtWidgets.QLabel("- - - - -")
@@ -191,42 +217,42 @@ class MainWidget(QtWidgets.QMainWindow):
         self.labelE.setFont(QtGui.QFont("Times", 14))
         self.labelE1 = QtWidgets.QLabel("Desconectado")
         self.labelE1.setFont(QtGui.QFont("Times", 14))
-        
+
+        #Se agregan widgets a layout GroupBox
         self.vbox1 = QtWidgets.QGridLayout()
         self.vbox1.addWidget(self.labelS, 0, 0)
         self.vbox1.addWidget(self.labelS1, 0, 1)
         self.vbox1.addWidget(self.labelE, 1, 0)
         self.vbox1.addWidget(self.labelE1, 1, 1)
-
         self.Box1.setLayout(self.vbox1)
 
+        #Se agrega GroupBox a layout MainWidget
         lay.addWidget(self.Box1,0,0,2,1)
 
 
-        ##################################################################
-        
+        #########################   Creacion GroupBox parametros grafica  #################################
+        #Creacion GroupBox
         self.Box2 = QtWidgets.QGroupBox()
         self.Box2.setMinimumWidth(300)
 
+        #Layout GroupBox
         self.vbox2 = QtWidgets.QGridLayout()
-        self.labelZmin = QtWidgets.QLabel(u"y mínimo")
-        self.labelZmax = QtWidgets.QLabel(u"y máximo")
-        self.labelZmin.setFont(QtGui.QFont("Times", 12))
-        self.labelZmax.setFont(QtGui.QFont("Times", 12))
-        self.textZmin = QtWidgets.QLineEdit("AUTO")
-        self.textZmax = QtWidgets.QLineEdit("AUTO")
 
+        #Etiqueta y Slider para zoom eje vertical
+        ##Creacion widgets
         self.zoomyLabel = QtWidgets.QLabel("Zoom y")
         self.zoomyLabel.setFont(QtGui.QFont("Times", 12))
         self.zoomySlider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
         self.zoomySlider.valueChanged[int].connect(self.on_valueChangedy)
         self.zoomySlider.setMinimum(0)
         self.zoomySlider.setMaximum(300)
-        self.zoomySlider.setSingleStep(1)
-        
+        self.zoomySlider.setSingleStep(0.25)
+        ##Se agregan widgets a layout GroupBox
         self.vbox2.addWidget(self.zoomyLabel,0,0)
         self.vbox2.addWidget(self.zoomySlider, 0, 1)
 
+        #Etiquetas y Slider para centrar eje vertical
+        ##Creacion Widgets
         self.centeryLabel = QtWidgets.QLabel("Centrar y")
         self.centeryLabel.setFont(QtGui.QFont("Times", 12))
         self.centerySlider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
@@ -235,19 +261,25 @@ class MainWidget(QtWidgets.QMainWindow):
         self.centerySlider.setMaximum(200)
         self.centerySlider.setSingleStep(0.25)
         self.centerySlider.setValue(0)
+        ##Se agregan widgets a layout GroupBox
         self.vbox2.addWidget(self.centeryLabel,1,0)
         self.vbox2.addWidget(self.centerySlider, 1, 1)
 
+        #Etiquetas y Slider para zoom eje horizontal
+        ##Creacion Widgets
         self.zoomxLabel = QtWidgets.QLabel("Zoom x")
         self.zoomxLabel.setFont(QtGui.QFont("Times", 12))
         self.zoomxSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
         self.zoomxSlider.valueChanged[int].connect(self.on_valueChangedx)
         self.zoomxSlider.setMinimum(0)
         self.zoomxSlider.setMaximum(300)
-        self.zoomxSlider.setSingleStep(1)
+        self.zoomxSlider.setSingleStep(0.25)
+        ##Se agregan widgets a layout GroupBox
         self.vbox2.addWidget(self.zoomxLabel,2,0)
         self.vbox2.addWidget(self.zoomxSlider, 2, 1)
 
+        #Etiquetas y Slider para centrar eje horizontal
+        ##Creacion Widgets
         self.centerxLabel = QtWidgets.QLabel("Centrar x")
         self.centerxLabel.setFont(QtGui.QFont("Times", 12))
         self.centerxSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
@@ -256,62 +288,56 @@ class MainWidget(QtWidgets.QMainWindow):
         self.centerxSlider.setMaximum(200)
         self.centerxSlider.setSingleStep(0.25)
         self.centerxSlider.setValue(0)
+        ##Se agregan widgets a layout GroupBox
         self.vbox2.addWidget(self.centerxLabel,3,0)
         self.vbox2.addWidget(self.centerxSlider, 3, 1)
 
-        #self.vbox2.addWidget(self.labelZmin, 0, 0)
-        #self.vbox2.addWidget(self.labelZmax, 1, 0)
-        #self.vbox2.addWidget(self.textZmin, 0, 1)
-        #self.vbox2.addWidget(self.textZmax, 1, 1)
+        #Etiquetas y Slider para numero de muestras o tiempo
+        ##Creacion Widgets
+        self.muestrasLabel = QtWidgets.QLabel("Muestras")
+        self.muestrasLabel.setFont(QtGui.QFont("Times", 12))
+        self.muestrasLabel = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        #self.centerxSlider.valueChanged[int].connect(self.on_valueChangedcx)
+        self.muestrasLabel.setMinimum(0)
+        self.muestrasLabel.setMaximum(200)
+        self.muestrasLabel.setSingleStep(5)
+        self.muestrasLabel.setValue(20)
 
-        self.btnAplicar = QtWidgets.QPushButton("Aplicar")
-        self.btnAuto = QtWidgets.QPushButton(u"Automático")
-        #self.vbox2.addWidget(self.btnAplicar, 2, 0)
-        #self.vbox2.addWidget(self.btnAuto, 2, 1)
+        #Texto Sliders
+        self.textZx = QtWidgets.QLineEdit()
+        self.textZy = QtWidgets.QLineEdit()
+        self.textCx = QtWidgets.QLineEdit()
+        self.textCy = QtWidgets.QLineEdit()
+        self.textM = QtWidgets.QLineEdit()
+        self.vbox2.addWidget(self.textZx,2,2)
+        self.vbox2.addWidget(self.textZy,0,2)
+        self.vbox2.addWidget(self.textCx,3,2)
+        self.vbox2.addWidget(self.textCy,1,2)
+        self.textZx.setFixedWidth(50)
+        self.textCx.setFixedWidth(50)
+        self.textZy.setFixedWidth(50)
+        self.textCy.setFixedWidth(50)
 
-        self.btnAplicar.clicked.connect(self.on_Aplicar)
-        self.btnAuto.clicked.connect(self.on_Auto)
+        self.textZx.setText("300")
+        self.textCx.setText("0")
+        self.textZy.setText("300")
+        self.textCy.setText("0")
         
+        #Se agrega layout a GroupBox
         self.Box2.setLayout(self.vbox2)
+
+        #Se agrega GroupBox a layout MainWidgets
         lay.addWidget(self.Box2, 3, 0)
 
-        ##################################################################
-        
-        self.Box3 = QtWidgets.QGroupBox()
-        self.Box3.setMinimumWidth(300)
-
-        self.vbox3 = QtWidgets.QGridLayout()
-        self.labelTiempo = QtWidgets.QLabel("Tiempo (ms)")
-        self.labelCuadros = QtWidgets.QLabel("Cuadros")
-        self.labelTiempo.setFont(QtGui.QFont("Times", 12))
-        self.labelCuadros.setFont(QtGui.QFont("Times", 12))
-        self.textTiempo = QtWidgets.QLineEdit("100")
-        self.textCuadros = QtWidgets.QLineEdit("50")
-
-        #self.vbox3.addWidget(self.labelTiempo, 0, 0)
-        #self.vbox3.addWidget(self.labelCuadros, 1, 0)
-        #self.vbox3.addWidget(self.textTiempo, 0, 1)
-        #self.vbox3.addWidget(self.textCuadros, 1, 1)
-
-        self.btnAplicarT = QtWidgets.QPushButton("Aplicar")
-        self.btnReiniciar = QtWidgets.QPushButton("Reiniciar")
-        
-        #self.vbox3.addWidget(self.btnAplicarT, 2, 0)
-        #self.vbox3.addWidget(self.btnReiniciar, 2, 1)
-
-        self.btnAplicarT.clicked.connect(self.on_AplicarT)
-        self.btnReiniciar.clicked.connect(self.on_Reiniciar)
-        
-        self.Box3.setLayout(self.vbox3)
-        lay.addWidget(self.Box3, 4, 0)
-
-        ##################################################################
-        
+        ###############################   Creacion GroupBox datos  ########################################
+        #Creacion GroupBox
         self.Box4 = QtWidgets.QGroupBox()
         self.Box4.setMinimumWidth(300)
 
+        #Creacion layout GroupBox
         self.vbox4 = QtWidgets.QGridLayout()
 
+        #Etiquetas titulos
         self.labelE = QtWidgets.QLabel("")
         self.labelV = QtWidgets.QLabel("Valor Actual")
         self.labelVmed = QtWidgets.QLabel("Media")
@@ -321,12 +347,15 @@ class MainWidget(QtWidgets.QMainWindow):
         self.labelVmed.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
         self.labelVmax.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
         self.labelVmin.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
-        
+
+        #Se agrega layout a GroupBox
         self.Box4.setLayout(self.vbox4)
+
+        #Se agrega GroupBox a MainWidget
         lay.addWidget(self.Box4, 4, 1)
 
-        ##################################################################
-        
+        #Etiquetas datos
+        ##Valores
         self.vAx = QtWidgets.QLabel()
         self.vAy = QtWidgets.QLabel()
         self.vAz = QtWidgets.QLabel()
@@ -371,7 +400,8 @@ class MainWidget(QtWidgets.QMainWindow):
         self.maxAcz = QtWidgets.QLabel()
         self.maxVel = QtWidgets.QLabel()
         self.maxImp = QtWidgets.QLabel()
-
+        ##Titulos
+        ###Creacion objetos
         self.tAx = QtWidgets.QLabel(u"Ángulo-x")
         self.tAy = QtWidgets.QLabel(u"Ángulo-y")
         self.tAz = QtWidgets.QLabel(u"Ángulo-z")
@@ -383,7 +413,7 @@ class MainWidget(QtWidgets.QMainWindow):
         self.tAcz = QtWidgets.QLabel(u"Aceleración-z")
         self.tVel = QtWidgets.QLabel("Velocidad")
         self.tImp = QtWidgets.QLabel("Impacto")
-
+        ###Fuente de las letras
         self.tAx.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
         self.tAy.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
         self.tAz.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
@@ -396,19 +426,91 @@ class MainWidget(QtWidgets.QMainWindow):
         self.tVel.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
         self.tImp.setFont(QtGui.QFont("Times", 8,  QtGui.QFont.Bold))
 
-        ##################################################################
+        #########################   Se agrega main_widget como central widget  ##################################
 
         self.setCentralWidget(self.main_widget)
 
-        ##################################################################
+        ################################   Creacion cliente MQTT  ###############################################
         
-        self.client = MqttClient(self)
-        self.client.stateChanged.connect(self.on_stateChanged)
-        self.client.messageSignal.connect(self.on_messageSignal)
-        #self.client.connected.connect(self.on_connect)
-        #self.client.disconnected.connect(self.on_disconnect)
-        self.Data = pgraph.DataPlot()
+        self.client = MqttClient(self)                              #Se crea objeto cliente derivado de la clase "MqttClient" de "mqtt_process.py" 
+        self.client.stateChanged.connect(self.on_stateChanged)      #Proceso handler de conexion al servidor
+        self.client.messageSignal.connect(self.on_messageSignal)    #Proceso handler de mensajes
+        self.Data = pgraph.DataPlot()                               #Se crea objeto "Data" derivado de clase "DataPlot" de "plot.py" para manejar los datos a graficar
 
+
+    #######################################   ACCIONES  #########################################################
+    def on_chx1(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[0] = 1
+        else:
+            self.state[0] = 0
+
+    def on_chx2(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[1] = 1
+        else:
+            self.state[1] = 0
+
+    def on_chx3(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[2] = 1
+        else:
+            self.state[2] = 0
+
+    def on_chx4(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[3] = 1
+        else:
+            self.state[3] = 0
+
+    def on_chx5(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[4] = 1
+        else:
+            self.state[4] = 0
+
+    def on_chx6(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[5] = 1
+        else:
+            self.state[5] = 0
+
+    def on_chx7(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[6] = 1
+        else:
+            self.state[6] = 0
+            
+    def on_chx8(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[7] = 1
+        else:
+            self.state[7] = 0
+
+    def on_chx9(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[8] = 1
+        else:
+            self.state[8] = 0
+            
+    def on_chx10(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[9] = 1
+        else:
+            self.state[9] = 0
+
+    def on_chx11(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[10] = 1
+        else:
+            self.state[10] = 0
+
+    def on_chx12(self, state):
+        if (QtCore.Qt.Checked == state):
+            self.state[11]= 1
+        else:
+            self.state[11] = 0
+    
     @QtCore.pyqtSlot(int)
     def on_stateChanged(self, state):
         if state == MqttClient.Connected:
@@ -417,14 +519,6 @@ class MainWidget(QtWidgets.QMainWindow):
             self.labelS1.setText(self.client.hostname)
             self.labelE1.setText("Conectado")
             print(u"Se ha efectuado la conexión")
-
-    #@QtCore.pyqtSlot()
-    #def on_connect(self):
-    #    pass
-
-    #@QtCore.pyqtSlot()
-    #def on_disconnect(self):
-    #    pass
         
     @QtCore.pyqtSlot(list)
     def on_messageSignal(self, msg):
@@ -432,7 +526,6 @@ class MainWidget(QtWidgets.QMainWindow):
         val2 = float(msg[1])
         val3 = float(msg[2])
         self.count += 1
-        self.lcd_number.display(val1)
         self.Data.add(self.count, msg)
         self.Plot.update_figure(self.Data, self.state, self.stateN, self.graph)
         self.actualizarV(self.Data.axis_y, self.Data.Vmed, self.Data.Vmax, self.Data.Vmin)
@@ -938,16 +1031,18 @@ class MainWidget(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()    
     def on_valueChangedy(self):
         value = 300-int(self.zoomySlider.value())+0.1
+        self.textZy.setText(str(value-0.1))
         center = int(self.centerySlider.value())
         print(value)
-        self.graph[1] = -1*value + center
-        self.graph[2] = value + center
+        self.graph[1] = value
+        self.graph[2] = center
         
 
     @QtCore.pyqtSlot()    
     def on_valueChangedcy(self):
         value = 300-int(self.zoomySlider.value())+0.1
         center = int(self.centerySlider.value())
+        self.textCy.setText(str(center))
         print("centrado y ",center)
         self.graph[1] = value
         self.graph[2] = center
@@ -956,6 +1051,7 @@ class MainWidget(QtWidgets.QMainWindow):
     def on_valueChangedx(self):
         print(self.zoomxSlider.value())
         value = 300-int(self.zoomxSlider.value())
+        self.textZx.setText(str(value-0.1))
         center = int(self.centerxSlider.value())
         self.graph[3] = value
         self.graph[4] = center
@@ -964,6 +1060,7 @@ class MainWidget(QtWidgets.QMainWindow):
     def on_valueChangedcx(self):
         value = 300-int(self.zoomxSlider.value())+0.1
         center = int(self.centerxSlider.value())
+        self.textCx.setText(str(center))
         print("centrado x ",center)
         self.graph[3] = value
         self.graph[4] = center
@@ -981,18 +1078,18 @@ class LogWidget(QtWidgets.QWidget):
         layout.addWidget(self.label)
         layout.addWidget(self.lineedit)
 
-class Dialog(QtGui.QDialog):
+class Dialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
-        self.label1 = QtGui.QLabel(u"Dirección")
-        self.label2 = QtGui.QLabel("Usuario")
-        self.textBox1 = QtGui.QLineEdit('192.168.126.180', self)
-        self.textBox2 = QtGui.QLineEdit('Usuario', self)
-        self.buttonOk = QtGui.QPushButton('Ok', self)
+        QtWidgets.QDialog.__init__(self, parent)
+        self.label1 = QtWidgets.QLabel(u"Dirección")
+        self.label2 = QtWidgets.QLabel("Usuario")
+        self.textBox1 = QtWidgets.QLineEdit('192.168.126.180', self)
+        self.textBox2 = QtWidgets.QLineEdit('Usuario', self)
+        self.buttonOk = QtWidgets.QPushButton('Ok', self)
         self.buttonOk.clicked.connect(self.accept)
-        self.buttonCancel = QtGui.QPushButton('Cancel', self)
+        self.buttonCancel = QtWidgets.QPushButton('Cancel', self)
         self.buttonCancel.clicked.connect(self.reject)
-        layout = QtGui.QGridLayout(self)
+        layout = QtWidgets.QGridLayout(self)
         layout.addWidget(self.label1, 0, 0, 1, 2)
         layout.addWidget(self.label2, 1, 0, 1, 2)
         layout.addWidget(self.textBox1, 0, 1, 1, 2)
@@ -1000,15 +1097,15 @@ class Dialog(QtGui.QDialog):
         layout.addWidget(self.buttonOk, 2, 0)
         layout.addWidget(self.buttonCancel, 2, 1)
 
-class DialogAnuncio(QtGui.QDialog):
+class DialogAnuncio(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
-        self.label = QtGui.QLabel(u"Actualmente hay un servidor activo ¿Desea cambiarlo?")
-        self.buttonOk = QtGui.QPushButton('Ok', self)
+        QtWidgets.QDialog.__init__(self, parent)
+        self.label = QtWidgets.QLabel(u"Actualmente hay un servidor activo ¿Desea cambiarlo?")
+        self.buttonOk = QtWidgets.QPushButton('Ok', self)
         self.buttonOk.clicked.connect(self.accept)
-        self.buttonCancel = QtGui.QPushButton('Cancel', self)
+        self.buttonCancel = QtWidgets.QPushButton('Cancel', self)
         self.buttonCancel.clicked.connect(self.reject)
-        layout = QtGui.QGridLayout(self)
+        layout = QtWidgets.QGridLayout(self)
         layout.addWidget(self.label, 0, 0, 1, 2, QtCore.Qt.AlignCenter)
         layout.addWidget(self.buttonOk, 1, 0)
         layout.addWidget(self.buttonCancel, 1, 1)
